@@ -14,9 +14,12 @@ import requests
 from fake_useragent import UserAgent
 from flask import Flask, render_template, request
 import sys
+import pymongo
 sys.setrecursionlimit(6000) #设置这个可以突破递归限制
 
 app=Flask(__name__)
+client = pymongo.MongoClient(host='localhost')
+db=client['JianShu2']
 @app.route('/',methods=['GET','POST'])
 def home():
     if request.method == 'POST':
@@ -53,6 +56,7 @@ timeline = {
     'like_notebook': [],  # 专题id
 }
 join_jianshu_time = ''
+lastest_time=''
 def get_user_timeline(slug,maxid,page):
     global join_jianshu_time
     print(f'正在抓取第{page}页')
@@ -78,8 +82,16 @@ def get_user_timeline(slug,maxid,page):
             time = li.xpath('.//@data-datetime')[0].replace('T',' ').replace('+08:00','')
             print(time)
 
-            if type == 'join_jianshu':
-                join_jianshu_time = time
+            # if type == 'join_jianshu':
+            #     join_jianshu_time = time
+            if lastest_time==time:
+                return
+            # obj['time']=time
+            if page == 1 and 'latest_time' not in timeline:
+                timeline['latest_time'] = time
+            if type=='join_jianshu':
+                join_jianshu_time=time
+                timeline['join_time']=join_jianshu_time
                 return
             obj['time']=time
             if type=='comment_note':
@@ -87,8 +99,23 @@ def get_user_timeline(slug,maxid,page):
                 print(obj['comment_text'])
                 obj['note_id']=li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
                 print(f"note_id:{obj['note_id']}")
-            elif type==['like_note']:
-                pass
+            elif type=='like_note':
+                obj['note_id']= li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
+            elif type=='reward_note':
+                obj['note_id']=li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
+            elif type=='share_note':
+                obj['note_id']= li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
+            elif type=='like_user':
+                obj['slug']=li.xpath('.//div[@class="follow-detail"]//a[@class="title"]/@href')[0].split('/')[-1]
+            elif type=='like_collection':
+                obj['coll_id']= li.xpath('.//a[@class="avatar-collection"]/@href')[0].split('/')[-1]
+            elif type=='like_comment':
+                obj['comment_text']= li.xpath('.//p[@class="comment"]/text()')[0]
+                obj['slug']=li.xpath('.//blockquote/div/a/@href')[0].split('/')[-1]
+                obj['note_id']= li.xpath('.//blockquote/div/span/a/@href')[0].split('/')[-1]
+            elif type=='like_notebook':
+                obj['notebook_id']=li.xpath('.//a[@class="avatar-collection"]/@href')[0].split('/')[-1]
+
             else:
                 pass
             lst=timeline[type]
@@ -146,9 +173,19 @@ def get_base_info(slug):
 
 if __name__ == '__main__':
     slug = 'b325abe9131e'
+    # latest_time=db['user_timeline'].find_one({'slug':slug},{'latest_time':1}).get('latest_time')
+
+    item = get_base_info(slug)
+    pprint(item)
+
     get_user_timeline(slug,None,1)
     print('采集所有动态完毕')
     pprint(timeline)
+
+    all_user_info=dict(item,**timeline)
+    for type in timeline.keys():
+        if len(timeline[type])>0 and type != 'latest_time':
+            db['user_timeline'].update_one({'slug':slug},{'$push':{type:{'$each':timeline[type]}}})
     # print(f'加入简书时间：{join_jianshu_time}')
     # item = get_base_info(slug)
     # pprint(item)
