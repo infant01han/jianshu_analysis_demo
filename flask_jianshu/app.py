@@ -12,6 +12,8 @@ from lxml import etree
 import requests
 from fake_useragent import UserAgent
 from flask import Flask, render_template, request
+import sys
+sys.setrecursionlimit(6000) #设置这个可以突破递归限制
 
 app=Flask(__name__)
 @app.route('/',methods=['GET','POST'])
@@ -38,38 +40,56 @@ BASE_HEADERS = {
     'Connection': 'keep-alive',
     'Referer': 'http://www.jianshu.com',
 }
-def get_user_timeline(slug):
+# 初始化盛数据的容器：timeline
+timeline = {
+    'comment_note': [],
+    'like_note': [],
+    'reward_note': [],
+    'share_note': [],
+    'like_user': [],
+    'like_coll': [],
+    'like_comment': [],
+    'like_notebook': [],
+}
+join_jianshu_time = ''
+def get_user_timeline(slug,maxid,page):
+    global join_jianshu_time
+    print(f'正在抓取第{page}页')
     AJAX_HEADERS = {"Referer": "http//:www.jianshu.com/u/{slug}".format(slug=slug),
                     "X-PJAX": "true"}
     headers = dict(BASE_HEADERS, **AJAX_HEADERS)
-    # 初始化盛数据的容器：timeline
-    timeline = {
-        'comment_note': [],
-        'like_note': [],
-        'reward_note': [],
-        'share_note': [],
-        'like_user': [],
-        'like_coll': [],
-        'like_comment': [],
-        'like_notebook': [],
-    }
-
-    url=f'https://www.jianshu.com/users/{slug}/timeline'
+    if maxid==None:
+        url=f'https://www.jianshu.com/users/{slug}/timeline'
+    else:
+        url=f'https://www.jianshu.com/users/{slug}/timeline?max_id={maxid}&page={page}'
     rsp = requests.get(url,headers=headers)
     # print(rsp.text)
-    tree = etree.HTML(rsp.text)#变成xml的树，可以用xpath解析
+    tree = etree.HTML(rsp.text)#将回应变成xml的树，可以用xpath解析
     lis = tree.xpath('.//li')
+    last_li_id=lis[-1].xpath('@id')[0].replace('feed-','')
+    print(last_li_id)
+    maxid = int(last_li_id)-1
     if lis != None:
         for li in lis:
             type = li.xpath('.//@data-type')[0]
             print(type)
             time = li.xpath('.//@data-datetime')[0].replace('T',' ').replace('+08:00','')
             print(time)
+
+            if type == 'join_jianshu':
+                join_jianshu_time = time
+                return
+
             lst=timeline[type]
             lst.append(time)
-    pprint(timeline)
+
+    # pprint(timeline)
+    get_user_timeline(slug,maxid,page+1)
 
 if __name__ == '__main__':
     slug = 'df56c9f72b32'
-    get_user_timeline(slug)
+    get_user_timeline(slug,None,1)
+    print('采集所有动态完毕')
+    pprint(timeline)
+    print(f'加入简书时间：{join_jianshu_time}')
     # app.run()
