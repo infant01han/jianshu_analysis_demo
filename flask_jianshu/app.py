@@ -5,6 +5,7 @@
 # @File    : app.py
 # @Software: PyCharm
 import re
+import time
 from pprint import pprint
 
 from lxml import etree
@@ -46,10 +47,10 @@ timeline = {
     'like_note': [],
     'reward_note': [],
     'share_note': [],
-    'like_user': [],
-    'like_coll': [],
+    'like_user': [],  # 用户id
+    'like_collection': [],  # 文集id
     'like_comment': [],
-    'like_notebook': [],
+    'like_notebook': [],  # 专题id
 }
 join_jianshu_time = ''
 def get_user_timeline(slug,maxid,page):
@@ -71,6 +72,7 @@ def get_user_timeline(slug,maxid,page):
     maxid = int(last_li_id)-1
     if lis != None:
         for li in lis:
+            obj={}
             type = li.xpath('.//@data-type')[0]
             print(type)
             time = li.xpath('.//@data-datetime')[0].replace('T',' ').replace('+08:00','')
@@ -79,17 +81,75 @@ def get_user_timeline(slug,maxid,page):
             if type == 'join_jianshu':
                 join_jianshu_time = time
                 return
-
+            obj['time']=time
+            if type=='comment_note':
+                obj['comment_text']=li.xpath('.//p[@class="comment"]/text()')[0]
+                print(obj['comment_text'])
+                obj['note_id']=li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
+                print(f"note_id:{obj['note_id']}")
+            elif type==['like_note']:
+                pass
+            else:
+                pass
             lst=timeline[type]
-            lst.append(time)
+            lst.append(obj)
 
     # pprint(timeline)
     get_user_timeline(slug,maxid,page+1)
+def get_base_info(slug):
+    url = f'http://www.jianshu.com/u/{slug}'
+    response = requests.get(url, headers=BASE_HEADERS)
+    if response.status_code == 404:
+        '''经测试，出现404时都是因为用户被封禁或注销，即显示：
+        您要找的页面不存在.可能是因为您的链接地址有误、该文章已经被作者删除或转为私密状态。'''
+        return None
+    else:
+        tree = etree.HTML(response.text)
+
+        div_main_top = tree.xpath('//div[@class="main-top"]')[0]
+        nickname = div_main_top.xpath('.//div[@class="title"]//a/text()')[0]
+        head_pic = div_main_top.xpath('.//a[@class="avatar"]//img/@src')[0]
+        div_main_top.xpath('.//div[@class="title"]//i/@class')
+
+        # 检查用户填写的性别信息。1：男  -1：女  0：性别未填写
+        if div_main_top.xpath('.//i[@class="iconfont ic-man"]'):
+            gender = 1
+        elif div_main_top.xpath('.//i[@class="iconfont ic-woman"]'):
+            gender = -1
+        else:
+            gender = 0
+
+        # 判断该用户是否为签约作者。is_contract为1是简书签约作者，为0则是普通用户
+        if div_main_top.xpath('.//i[@class="iconfont ic-write"]'):
+            is_contract = 1
+        else:
+            is_contract = 0
+
+        # 取出用户文章及关注量
+        info = div_main_top.xpath('.//li//p//text()')
+
+        item = {'nickname': nickname,
+                'slug': slug,
+                'head_pic': head_pic,
+                'gender': gender,
+                'is_contract': is_contract,
+                'following_num': int(info[0]),
+                'followers_num': int(info[1]),
+                'articles_num': int(info[2]),
+                'words_num': int(info[3]),
+                'be_liked_num': int(info[4]),
+                'update_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                }
+        # 取当前抓取时间，为用户信息更新时间。添加update_time字段
+        return item
+
 
 if __name__ == '__main__':
-    slug = 'df56c9f72b32'
+    slug = 'b325abe9131e'
     get_user_timeline(slug,None,1)
     print('采集所有动态完毕')
     pprint(timeline)
-    print(f'加入简书时间：{join_jianshu_time}')
+    # print(f'加入简书时间：{join_jianshu_time}')
+    # item = get_base_info(slug)
+    # pprint(item)
     # app.run()
