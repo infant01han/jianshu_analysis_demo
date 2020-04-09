@@ -56,7 +56,8 @@ def jianshu_timeline():
     #从mongodb中获取动态
     user_base_info = au.get_user_base_info()
     first_info=au.get_first_info()
-    return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info)
+    tags_data = au.get_tags_data()
+    return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info,tags_data=tags_data)
 if __name__ == '__main__':
     # slug = 'b325abe9131e'
     # slug='df56c9f72b32'
