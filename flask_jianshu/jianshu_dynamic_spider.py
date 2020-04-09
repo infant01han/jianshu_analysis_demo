@@ -162,7 +162,8 @@ class JianshuSpider:
         self.db['user_timeline'].update_one({'slug':self.slug},{'$set':all_user_info},upsert=True)
     # 实现断点续爬
     def append_user_timeline_to_mongodb(self):
-        self.db['user_timeline'].update_one({'slug': self.slug}, {'$set': {'latest_time': self.timeline['latest_time']}}, upsert=True)
+        if 'latest_time' in self.timeline:
+            self.db['user_timeline'].update_one({'slug': self.slug}, {'$set': {'latest_time': self.timeline['latest_time']}}, upsert=True)
         for type in self.timeline.keys():
             if len(self.timeline[type]) > 0 and type != 'latest_time':
                 self.db['user_timeline'].update_one({'slug': self.slug}, {'$push': {type: {'$each': self.timeline[type]}}})
