@@ -53,8 +53,10 @@ def jianshu_timeline():
     #采集用户全部动态并保存到mongodb
     get_user_dynamic_info(slug)
     au = AnalysisUser(slug)
+    #从mongodb中获取动态
     user_base_info = au.get_user_base_info()
-    return render_template('timeline.html',baseinfo=user_base_info)
+    first_info=au.get_first_info()
+    return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info)
 if __name__ == '__main__':
     # slug = 'b325abe9131e'
     # slug='df56c9f72b32'
