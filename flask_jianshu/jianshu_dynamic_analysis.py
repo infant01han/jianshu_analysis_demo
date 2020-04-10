@@ -7,6 +7,7 @@
 from collections import Counter
 from datetime import datetime
 
+import jieba
 import pymongo
 
 
@@ -139,3 +140,40 @@ class AnalysisUser:
         dic['frequency']=frequency_lst
         print(dic)
         return dic
+    def get_week_hour_data(self):
+        like_note_lst=[obj['time'][:13] for obj in self.user_data['like_note']]
+        all_like_note_lst=[(str(datetime.strptime(item[:10],'%Y-%m-%d').weekday())+item[11:13]) for item in like_note_lst]
+
+        counter = Counter(all_like_note_lst)
+        maxFreq = counter.most_common(1)[0][1]
+        sorted_lst = sorted(counter.items(),key=lambda x:x[0])
+
+        lst=[]
+        for tp in sorted_lst:
+            lstTmp=[int(tp[0][0]),int(tp[0][1:]),tp[1]]
+            lst.append(lstTmp)
+        print(lst)
+
+        dic={}
+        dic['week_hour']=lst
+        dic['maxFreq']=maxFreq
+        return dic
+    def get_word_cloud_data(self):
+        word_cloud_data=[obj['comment_text'] for obj in self.user_data['comment_note']]
+        count = len(self.user_data['comment_note'])
+        word_cloud_str=''.join(word_cloud_data)
+        word_cloud_lst=jieba.cut(word_cloud_str)
+        wordlstnew=[w for w in word_cloud_lst if len(w)>=2]
+        # [{
+        #     name: " 没有",
+        #     value: 30,
+        # },
+        counter = Counter(wordlstnew)
+        sorted_lst = sorted(counter.items(),key=lambda x:x[1])
+        data_lst=[{'name':item[0],'value':item[1]} for item in sorted_lst]
+
+        dic_return = {}
+        dic_return['count']=count
+        dic_return['word_cloud']=data_lst
+
+        return dic_return

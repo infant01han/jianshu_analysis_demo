@@ -57,11 +57,15 @@ def jianshu_timeline():
     user_base_info = au.get_user_base_info()
     first_info=au.get_first_info()
     tags_data = au.get_tags_data()
+
     month_data_dic=au.get_month_data()
     day_data_dic=au.get_day_data()
     hour_data_dic=au.get_hour_data()
     week_data_dic=au.get_week_data()
-    return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info,tags_data=tags_data,month_data_dic=month_data_dic,day_data_dic=day_data_dic,hour_data_dic=hour_data_dic,week_data_dic=week_data_dic)
+    week_hour_data_dic=au.get_week_hour_data()
+
+    word_cloud_lst=au.get_word_cloud_data()
+    return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info,tags_data=tags_data,month_data_dic=month_data_dic,day_data_dic=day_data_dic,hour_data_dic=hour_data_dic,week_data_dic=week_data_dic,week_hour_data_dic=week_hour_data_dic,word_cloud_lst=word_cloud_lst)
 if __name__ == '__main__':
     # slug = 'b325abe9131e'
     # slug='df56c9f72b32'

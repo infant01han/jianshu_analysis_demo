@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../static/css/jquery.fullPage.css">
     <script type="text/javascript" src="../static/js/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="../static/js/jquery.fullPage.js"></script>
+    <script src='../static/js/echarts-wordcloud.min.js'></script>
     <script>
         $(function () {
             $('#result').fullpage({
@@ -428,6 +429,198 @@
                 myChart4.setOption(option);
 
             </script>
+        </div>
+        <div class="section" id="share_note_week_hour">
+        <div align="center">
+            <h4>一周中点赞文章时间频率分布</h4>
+            <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+            <div id="share_note_week_hour_chart" style="width:100%;height:580px;"></div>
+            <script type="text/javascript">
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('share_note_week_hour_chart'));
+
+                // 指定图表的配置项和数据
+
+                var hours = ['12am', '1am', '2am', '3am', '4am', '5am', '6am',
+                        '7am', '8am', '9am','10am','11am',
+                        '12pm', '1pm', '2pm', '3pm', '4pm', '5pm',
+                        '6pm', '7pm', '8pm', '9pm', '10pm', '11pm'];
+                var days = ['周一', '周二',
+                        '周三', '周四', '周五', '周六','周日'];
+
+                var data = {{week_hour_data_dic['week_hour'] | tojson}}
+
+                var option = {
+                    tooltip: {
+                        position: 'left'
+                    },
+                    title: [],
+                    color:['#FF6666','#EFE42A','#64BD3D','#EE9201','#29AAE3',
+                    '#B74AE5','#0AAF9F','#E89589'],
+                    singleAxis: [],
+                    series: []
+                };
+
+                echarts.util.each(days, function (day, idx) {
+                    option.title.push({
+                        textBaseline: 'middle',
+                        top: (idx + 0.5) * 100 / 7 + '%',
+                        text: day
+                    });
+                    option.singleAxis.push({
+                        left: 120,
+                        type: 'category',
+                        boundaryGap: false,
+                        data: hours,
+                        top: (idx * 100 / 7 + 5) + '%',
+                        height: (100 / 7 - 10) + '%',
+                        axisLabel: {
+                            interval: 2
+                        }
+                    });
+                    option.series.push({
+                        singleAxisIndex: idx,
+                        coordinateSystem: 'singleAxis',
+                        type: 'scatter',
+                        data: [],
+                        symbolSize: function (dataItem) {
+                            return dataItem[1]/{{week_hour_data_dic['maxFreq'] }} * 100;
+                        }
+                    });
+                });
+
+                echarts.util.each(data, function (dataItem) {
+                    option.series[dataItem[0]].data.push([dataItem[1], dataItem[2]]);
+                });
+
+                //*必须，绑定图表自适应功能
+               window.onresize = function () {
+                   myChart.resize();
+                };
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+
+            </script>
+    </div>
+    </div>
+        <div class="section" id="comment_cloud">
+                <div align="center">
+                    <h3>{{word_cloud_lst['count']}}</h3>
+
+                <div id="11eb85c7b04b42a1ab8f1883a090eb59" style="width:100%;height:600px;"></div>
+                <script type="text/javascript">
+
+        var myChart_11eb85c7b04b42a1ab8f1883a090eb59 = echarts.init(document.getElementById('11eb85c7b04b42a1ab8f1883a090eb59'), 'light', {renderer: 'canvas'});
+
+        var option_11eb85c7b04b42a1ab8f1883a090eb59 = {
+            "title": [
+                {
+                    "left": "auto",
+                    "top": "auto",
+                    "textStyle": {
+                        "fontSize": 18
+                    },
+                    "subtextStyle": {
+                        "fontSize": 12
+                    }
+                }
+            ],
+            "toolbox": {
+                "show": true,
+                "orient": "vertical",
+                "left": "95%",
+                "top": "center",
+                "feature": {
+                    "saveAsImage": {
+                        "show": true,
+                        "title": "\u4e0b\u8f7d\u56fe\u7247"
+                    },
+                    "restore": {
+                        "show": true
+                    },
+                    "dataView": {
+                        "show": true
+                    }
+                }
+            },
+            "series_id": 7907133,
+            "tooltip": {
+                "trigger": "item",
+                "triggerOn": "mousemove|click",
+                "axisPointer": {
+                    "type": "line"
+                },
+                "textStyle": {
+                    "fontSize": 14
+                },
+                "backgroundColor": "rgba(50,50,50,0.7)",
+                "borderColor": "#333",
+                "borderWidth": 0
+            },
+            "series": [
+                {
+                    "type": "wordCloud",
+                    "shape": "diamond",
+                    "rotationRange": [
+                        0,
+                        0
+                    ],
+                    "rotationStep": 45,
+                    "girdSize": 20,
+                    "sizeRange": [
+                        15,
+                        120
+                    ],
+                    "data": {{word_cloud_lst['word_cloud']|tojson}}
+                }
+        ],
+            "legend": [
+                {
+                    "data": [],
+                    "selectedMode": "multiple",
+                    "show": true,
+                    "left": "center",
+                    "top": "top",
+                    "orient": "horizontal",
+                    "textStyle": {
+                        "fontSize": 12
+                    }
+                }
+            ],
+            "color": [
+                "#c23531",
+                "#2f4554",
+                "#61a0a8",
+                "#d48265",
+                "#749f83",
+                "#ca8622",
+                "#bda29a",
+                "#6e7074",
+                "#546570",
+                "#c4ccd3",
+                "#f05b72",
+                "#ef5b9c",
+                "#f47920",
+                "#905a3d",
+                "#fab27b",
+                "#2a5caa",
+                "#444693",
+                "#726930",
+                "#b2d235",
+                "#6d8346",
+                "#ac6767",
+                "#1d953f",
+                "#6950a1",
+                "#918597",
+                "#f6f5ec"
+            ]
+        };
+        myChart_11eb85c7b04b42a1ab8f1883a090eb59.setOption(option_11eb85c7b04b42a1ab8f1883a090eb59);
+
+        </script>
+
+                </div>
         </div>
     </div>
 </body>
