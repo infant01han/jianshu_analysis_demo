@@ -4,6 +4,8 @@
 # @Email   : hanlei5012@163.com
 # @File    : jianshu_dynamic_analysis.py
 # @Software: PyCharm
+from collections import Counter
+from datetime import datetime
 
 import pymongo
 
@@ -66,7 +68,74 @@ class AnalysisUser:
     # ]
 
     def get_tags_data(self):
-        tags_zh_names_lst=[{'name':zh_name} for zh_name in self.zh_parent_tags]
-        tags_values=[{'value':len(self.user_data[tag])} for tag in self.en_parent_tags]
-        tags_data=[dict(tags_zh_names_lst[i],**tags_values[i]) for i in range(len(tags_values))]
+        tags_zh_names_lst = [{'name':zh_name} for zh_name in self.zh_parent_tags]
+        tags_values = [{'value':len(self.user_data[tag])} for tag in self.en_parent_tags]
+        tags_data = [dict(tags_zh_names_lst[i], **tags_values[i]) for i in range(len(tags_values))]
         return tags_data
+
+
+    def get_month_data(self):
+        all_time_lst=[]
+        for type in self.en_parent_tags:
+            type_lst=[obj['time'][:7] for obj in self.user_data[type]]
+            all_time_lst.extend(type_lst)
+
+        counter = Counter(all_time_lst)
+        sorted_lst = sorted(counter.items(),key=lambda x:x[0])
+        month_lst=[item[0] for item in sorted_lst]
+        frequency_lst = [item[1] for item in sorted_lst]
+
+        dic={}
+        dic['month']=month_lst
+        dic['frequency']=frequency_lst
+        return dic
+
+    def get_day_data(self):
+        all_time_lst=[]
+        for type in self.en_parent_tags:
+            type_lst=[obj['time'][:10] for obj in self.user_data[type]]
+            all_time_lst.extend(type_lst)
+
+        counter = Counter(all_time_lst)
+        sorted_lst = sorted(counter.items(),key=lambda x:x[0])
+        month_lst=[item[0] for item in sorted_lst]
+        frequency_lst = [item[1] for item in sorted_lst]
+
+        dic={}
+        dic['day']=month_lst
+        dic['frequency']=frequency_lst
+        return dic
+
+    def get_hour_data(self):
+        all_time_lst=[]
+        for type in self.en_parent_tags:
+            type_lst=[obj['time'][11:13] for obj in self.user_data[type]]
+            all_time_lst.extend(type_lst)
+
+        counter = Counter(all_time_lst)
+        sorted_lst = sorted(counter.items(),key=lambda x:x[0])
+        month_lst=[item[0] for item in sorted_lst]
+        frequency_lst = [item[1] for item in sorted_lst]
+
+        dic={}
+        dic['hour']=month_lst
+        dic['frequency']=frequency_lst
+        return dic
+    def get_week_data(self):
+        week_dic={0:'星期一',1:'星期二',2:'星期三',3:'星期四',4:'星期五',5:'星期六',6:'星期日'}
+        all_time_lst=[]
+        for type in self.en_parent_tags:
+            type_lst=[obj['time'][:10] for obj in self.user_data[type]]
+            all_time_lst.extend(type_lst)
+        all_week_lst=[datetime.strptime(item,'%Y-%m-%d').weekday() for item in all_time_lst]
+
+        counter = Counter(all_week_lst)
+        sorted_lst = sorted(counter.items(),key=lambda x:x[0])
+        month_lst=[week_dic[item[0]] for item in sorted_lst]
+        frequency_lst = [item[1] for item in sorted_lst]
+
+        dic={}
+        dic['week']=month_lst
+        dic['frequency']=frequency_lst
+        print(dic)
+        return dic
