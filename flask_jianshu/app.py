@@ -58,8 +58,8 @@ def jianshu_timeline():
     first_info=au.get_first_info()
     tags_data = au.get_tags_data()
 
-    month_data_dic=au.get_month_data()
-    day_data_dic=au.get_day_data()
+    month_data_dic=au.get_month_data_pd()
+    day_data_dic=au.get_day_data_pd()
     hour_data_dic=au.get_hour_data()
     week_data_dic=au.get_week_data()
     week_hour_data_dic=au.get_week_hour_data()

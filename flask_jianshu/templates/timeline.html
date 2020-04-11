@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../static/css/jquery.fullPage.css">
     <script type="text/javascript" src="../static/js/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="../static/js/jquery.fullPage.js"></script>
-    <script src='../static/js/echarts-wordcloud.min.js'></script>
+    <script type="text/javascript" src='../static/js/echarts-wordcloud.min.js'></script>
     <script>
         $(function () {
             $('#result').fullpage({
@@ -508,12 +508,12 @@
                 <div align="center">
                     <h3>{{word_cloud_lst['count']}}</h3>
 
-                <div id="11eb85c7b04b42a1ab8f1883a090eb59" style="width:100%;height:600px;"></div>
+                <div id="word_cloud" style="width:100%;height:600px;"></div>
                 <script type="text/javascript">
 
-        var myChart_11eb85c7b04b42a1ab8f1883a090eb59 = echarts.init(document.getElementById('11eb85c7b04b42a1ab8f1883a090eb59'), 'light', {renderer: 'canvas'});
+        var myChart = echarts.init(document.getElementById('word_cloud'), 'light', {renderer: 'canvas'});
 
-        var option_11eb85c7b04b42a1ab8f1883a090eb59 = {
+        var option = {
             "title": [
                 {
                     "left": "auto",
@@ -616,7 +616,7 @@
                 "#f6f5ec"
             ]
         };
-        myChart_11eb85c7b04b42a1ab8f1883a090eb59.setOption(option_11eb85c7b04b42a1ab8f1883a090eb59);
+        myChart.setOption(option);
 
         </script>
 

@@ -9,6 +9,7 @@ from datetime import datetime
 
 import jieba
 import pymongo
+import pandas as pd
 
 
 class AnalysisUser:
@@ -19,6 +20,11 @@ class AnalysisUser:
         self.user_data = self.db['user_timeline'].find_one({'slug':self.slug})
         self.zh_parent_tags=['发表评论', '喜欢文章', '赞赏文章', '发表文章', '关注用户', '关注专题', '点赞评论', '关注文集']
         self.en_parent_tags=['comment_note', 'like_note', 'reward_note', 'share_note', 'like_user', 'like_collection', 'like_comment', 'like_notebook']
+        df_lst=[]
+        for tag in self.en_parent_tags:
+            df=pd.DataFrame(self.user_data[tag])
+            df_lst.append(df)
+        self.df=pd.concat(df_lst)
 
     def get_user_base_info(self):
         baseinfo = {'head_pic': self.user_data['head_pic'],
@@ -73,6 +79,31 @@ class AnalysisUser:
         tags_values = [{'value':len(self.user_data[tag])} for tag in self.en_parent_tags]
         tags_data = [dict(tags_zh_names_lst[i], **tags_values[i]) for i in range(len(tags_values))]
         return tags_data
+
+    def get_month_data_pd(self):
+        dt_index=pd.to_datetime(list(self.df.time))
+        ts=pd.Series([1]*len(dt_index),index=dt_index)
+        tsday = ts.resample("1M").sum()
+
+        lstMonth=[x.strftime('%Y-%m') for x in tsday[tsday>0].index]
+        lst_freq=list(tsday[tsday>0].values)
+        dic={}
+        dic['month']=lstMonth
+        dic['frequency']=list(map(int,lst_freq))
+        return dic
+
+    def get_day_data_pd(self):
+        dt_index = pd.to_datetime(list(self.df.time))
+        ts = pd.Series([1] * len(dt_index), index=dt_index)
+        tsday = ts.resample("1D").sum()
+
+        lstDay = [x.strftime('%Y-%m-%d') for x in tsday[tsday > 0].index]
+        lst_freq = list(tsday[tsday > 0].values)
+        dic = {}
+        dic['day'] = lstDay
+        dic['frequency'] = list(map(int,lst_freq))
+        return dic
+
 
 
     def get_month_data(self):
