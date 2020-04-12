@@ -4,6 +4,7 @@
 # @Email   : hanlei5012@163.com
 # @File    : jianshu_dynamic_spider.py
 # @Software: PyCharm
+import sys
 import time
 from pprint import pprint
 
@@ -11,7 +12,7 @@ import pymongo
 import requests
 from fake_useragent import UserAgent
 from lxml import etree
-
+sys.setrecursionlimit(6000) #设置这个可以突破递归限制
 
 class JianshuSpider:
     def __init__(self,slug):
@@ -38,6 +39,7 @@ class JianshuSpider:
             'like_collection': [],  # 专题id
             'like_comment': [],
             'like_notebook': [],  # 文集id
+            'reward_user':[]
         }
         self.lastest_time = ''
 
@@ -92,11 +94,16 @@ class JianshuSpider:
                 elif type == 'like_collection':
                     obj['coll_id'] = li.xpath('.//a[@class="avatar-collection"]/@href')[0].split('/')[-1]
                 elif type == 'like_comment':
-                    obj['comment_text'] = li.xpath('.//p[@class="comment"]/text()')[0]
+                    try:
+                        obj['comment_text'] = li.xpath('.//p[@class="comment"]/text()')[0]
+                    except IndexError:
+                        print('Error:list index out of range')
                     obj['slug'] = li.xpath('.//blockquote/div/a/@href')[0].split('/')[-1]
                     obj['note_id'] = li.xpath('.//blockquote/div/span/a/@href')[0].split('/')[-1]
                 elif type == 'like_notebook':
                     obj['notebook_id'] = li.xpath('.//a[@class="avatar-collection"]/@href')[0].split('/')[-1]
+                elif type == 'reward_user':
+                    obj['slug']=li.xpath('.//a[@class="title"]/@href')[0].split('/')[-1]
 
                 else:
                     pass
