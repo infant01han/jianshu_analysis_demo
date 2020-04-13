@@ -104,7 +104,51 @@ class AnalysisUser:
         dic['frequency'] = list(map(int,lst_freq))
         return dic
 
+    def get_hour_data_pd(self):
+        dti=pd.to_datetime(self.df.time).to_frame()  # 转换成dataframe类型
+        dayofweek_group=dti.groupby(dti['time'].map(lambda x:x.hour)).count()
+        lst_freq=[int(item) for item in dayofweek_group.values]
+        lst_dayofweek=[str(item).rjust(2,'0')+':00' for item in dayofweek_group.index]
 
+        dic = {}
+        dic['hour'] = lst_dayofweek
+        dic['frequency'] = lst_freq
+        return dic
+
+
+
+    def get_week_data_pd(self):
+        dti = pd.to_datetime(self.df.time).to_frame()  # 转换成dataframe类型
+        dayofweek_group = dti.groupby(dti['time'].map(lambda x: x.dayofweek)).count()
+        week_day_dict = {0: '周一', 1: '周二', 2: '周三', 3: '周四',
+                         4: '周五', 5: '周六', 6: '周日', }
+        lst_freq = [int(item) for item in dayofweek_group.values]
+        lst_dayofweek = [week_day_dict[item] for item in dayofweek_group.index]
+
+        dic = {}
+        dic['week'] = lst_dayofweek
+        dic['frequency'] = lst_freq
+        return dic
+
+    def get_week_hour_data_pd(self):
+        dti=pd.to_datetime(self.df.time).to_frame()
+        gg=dti.groupby([dti['time'].map(lambda x:x.dayofweek).rename('dayofweek'),dti['time'].map(lambda x:x.hour).rename('hour')])
+        gg_count=gg.count()
+
+        lst_week_hour_data=[]
+        max_freq=0
+        for name,grp in gg:
+            print(name)#(周几,几点)
+            freq=gg_count.loc[name].values[0]#频率，次数
+            if max_freq<freq:
+                max_freq=freq
+            tmp_lst=[int(name[0]),int(name[1]),int(freq)]
+            lst_week_hour_data.append(tmp_lst)
+
+        dic={}
+        dic['week_hour']=lst_week_hour_data
+        dic['maxFreq']=max_freq
+        return dic
 
     def get_month_data(self):
         all_time_lst=[]

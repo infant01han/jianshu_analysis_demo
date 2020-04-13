@@ -60,9 +60,9 @@ def jianshu_timeline():
 
     month_data_dic=au.get_month_data_pd()
     day_data_dic=au.get_day_data_pd()
-    hour_data_dic=au.get_hour_data()
-    week_data_dic=au.get_week_data()
-    week_hour_data_dic=au.get_week_hour_data()
+    hour_data_dic=au.get_hour_data_pd()
+    week_data_dic=au.get_week_data_pd()
+    week_hour_data_dic=au.get_week_hour_data_pd()
 
     word_cloud_lst=au.get_word_cloud_data()
     return render_template('timeline.html',baseinfo=user_base_info,first_tag_time=first_info,tags_data=tags_data,month_data_dic=month_data_dic,day_data_dic=day_data_dic,hour_data_dic=hour_data_dic,week_data_dic=week_data_dic,week_hour_data_dic=week_hour_data_dic,word_cloud_lst=word_cloud_lst)
