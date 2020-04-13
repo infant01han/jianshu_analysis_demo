@@ -42,6 +42,7 @@ class JianshuSpider:
             'reward_user':[]
         }
         self.lastest_time = ''
+        self.item={}
 
     def get_user_timeline(self, maxid, page):
         print(f'正在抓取第{page}页动态')
@@ -145,7 +146,7 @@ class JianshuSpider:
             # 取出用户文章及关注量
             info = div_main_top.xpath('.//li//p//text()')
 
-            item = {'nickname': nickname,
+            self.item = {'nickname': nickname,
                     'slug': self.slug,
                     'head_pic': head_pic,
                     'gender': gender,
@@ -158,7 +159,7 @@ class JianshuSpider:
                     'update_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     }
             # 取当前抓取时间，为用户信息更新时间。添加update_time字段
-            return item
+            return self.item
     def get_lastest_time(self):
         result=self.db['user_timeline'].find_one({'slug':self.slug},{'latest':1})
         if result != None:
@@ -167,8 +168,10 @@ class JianshuSpider:
             self.lastest_time=None
     def add_user_timeline_to_mongodb(self,all_user_info):
         self.db['user_timeline'].update_one({'slug':self.slug},{'$set':all_user_info},upsert=True)
+        print(all_user_info)
     # 实现断点续爬
     def append_user_timeline_to_mongodb(self):
+        self.db['user_timeline'].update_one({'slug': self.slug},{'$set':self.item},upsert=True)
         if 'latest_time' in self.timeline:
             self.db['user_timeline'].update_one({'slug': self.slug}, {'$set': {'latest_time': self.timeline['latest_time']}}, upsert=True)
         for type in self.timeline.keys():
